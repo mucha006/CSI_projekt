@@ -5,114 +5,114 @@
 using namespace cv;
 using namespace std;
 
-// Obecná funkce pro aplikaci konvoluce s danım jádrem
+// ObecnÃ¡ funkce pro aplikaci konvoluce s danÃ½m jÃ¡drem
 Mat applyConvolution(const Mat& input, const vector<vector<int>>& kernel) {
-    int kernelSize = kernel.size(); // Velikost jádra 
-    int offset = kernelSize / 2; // Posun pro procházení okrajù obrázku
-    Mat output = Mat::zeros(input.size(), CV_32F); // Vıstupní matice s nulami
+    int kernelSize = kernel.size(); // Velikost jÃ¡dra 
+    int offset = kernelSize / 2; // Posun pro prochÃ¡zenÃ­ okrajÅ¯ obrÃ¡zku
+    Mat output = Mat::zeros(input.size(), CV_32F); // VÃ½stupnÃ­ matice s nulami
 
-    // Procházení obrázku (vynechání okrajù kvùli jádru)
-    // Okraje jsou vynechány, protoe jádro nemùe bıt aplikováno na pixely na okrajích obrázku
+    // ProchÃ¡zenÃ­ obrÃ¡zku (vynechÃ¡nÃ­ okrajÅ¯ kvÅ¯li jÃ¡dru)
+    // Okraje jsou vynechÃ¡ny, protoÅ¾e jÃ¡dro nemÅ¯Å¾e bÃ½t aplikovÃ¡no na pixely na okrajÃ­ch obrÃ¡zku
     for (int y = offset; y < input.rows - offset; y++) {
         for (int x = offset; x < input.cols - offset; x++) {
-            float sum = 0.0f; // Inicializace souètu pro konvoluci
+            float sum = 0.0f; // Inicializace souÄtu pro konvoluci
 
-            // Procházení jádra
-            // Jádro se aplikuje na okolní pixely kolem aktuálního pixelu (x, y)
+            // ProchÃ¡zenÃ­ jÃ¡dra
+            // JÃ¡dro se aplikuje na okolnÃ­ pixely kolem aktuÃ¡lnÃ­ho pixelu (x, y)
             for (int ky = -offset; ky <= offset; ky++) {
                 for (int kx = -offset; kx <= offset; kx++) {
                     int pixelValue = input.at<uchar>(y + ky, x + kx); // Hodnota pixelu
-                    sum += pixelValue * kernel[ky + offset][kx + offset]; // Aplikace jádra
+                    sum += pixelValue * kernel[ky + offset][kx + offset]; // Aplikace jÃ¡dra
                 }
             }
-            output.at<float>(y, x) = sum; // Uloení vısledku konvoluce
+            output.at<float>(y, x) = sum; // UloÅ¾enÃ­ vÃ½sledku konvoluce
         }
     }
-    return output; // Vrácení vısledné matice
+    return output; // VrÃ¡cenÃ­ vÃ½slednÃ© matice
 }
 
-// Funkce pro aplikaci Sobelova operátoru (vertikální nebo horizontální)
+// Funkce pro aplikaci Sobelova operÃ¡toru (vertikÃ¡lnÃ­ nebo horizontÃ¡lnÃ­)
 void applySobel(const Mat& img, Mat& output, bool horizontal = false) {
-    // Sobelovo jádro pro detekci vertikálních hran
-    // Toto jádro zvırazòuje vertikální zmìny v intenzitì pixelù
+    // Sobelovo jÃ¡dro pro detekci vertikÃ¡lnÃ­ch hran
+    // Toto jÃ¡dro zvÃ½razÅˆuje vertikÃ¡lnÃ­ zmÄ›ny v intenzitÄ› pixelÅ¯
     vector<vector<int>> sobelX = {
         {-1,  0,  1},
         {-2,  0,  2},
         {-1,  0,  1}
     };
 
-    // Sobelovo jádro pro detekci horizontálních hran
-    // Toto jádro zvırazòuje horizontální zmìny v intenzitì pixelù
+    // Sobelovo jÃ¡dro pro detekci horizontÃ¡lnÃ­ch hran
+    // Toto jÃ¡dro zvÃ½razÅˆuje horizontÃ¡lnÃ­ zmÄ›ny v intenzitÄ› pixelÅ¯
     vector<vector<int>> sobelY = {
         {-1, -2, -1},
         { 0,  0,  0},
         { 1,  2,  1}
     };
 
-    // Aplikace konvoluce pro vertikální a horizontální gradienty
+    // Aplikace konvoluce pro vertikÃ¡lnÃ­ a horizontÃ¡lnÃ­ gradienty
     Mat gradX = applyConvolution(img, sobelX);
     Mat gradY = applyConvolution(img, sobelY);
 
-    // Vıpoèet gradientu (vertikální nebo horizontální)
+    // VÃ½poÄet gradientu (vertikÃ¡lnÃ­ nebo horizontÃ¡lnÃ­)
     output = Mat::zeros(img.size(), CV_32F);
     for (int y = 0; y < img.rows; y++) {
         for (int x = 0; x < img.cols; x++) {
-            float Gx = gradX.at<float>(y, x); // Vertikální gradient
-            float Gy = gradY.at<float>(y, x); // Horizontální gradient
-            output.at<float>(y, x) = horizontal ? abs(Gx) : abs(Gy); // Volba horizontální/vertikální detekce
+            float Gx = gradX.at<float>(y, x); // VertikÃ¡lnÃ­ gradient
+            float Gy = gradY.at<float>(y, x); // HorizontÃ¡lnÃ­ gradient
+            output.at<float>(y, x) = horizontal ? abs(Gx) : abs(Gy); // Volba horizontÃ¡lnÃ­/vertikÃ¡lnÃ­ detekce
         }
     }
 }
 
-// Funkce pro aplikaci Prewittova operátoru
+// Funkce pro aplikaci Prewittova operÃ¡toru
 void applyPrewitt(const Mat& img, Mat& output) {
-    // Prewittovo jádro pro detekci vertikálních hran
-    // Toto jádro je podobné Sobelovu, ale má menší váhy
+    // Prewittovo jÃ¡dro pro detekci vertikÃ¡lnÃ­ch hran
+    // Toto jÃ¡dro je podobnÃ© Sobelovu, ale mÃ¡ menÅ¡Ã­ vÃ¡hy
     vector<vector<int>> prewittX = {
         {-1,  0,  1},
         {-1,  0,  1},
         {-1,  0,  1}
     };
 
-    // Prewittovo jádro pro detekci horizontálních hran
+    // Prewittovo jÃ¡dro pro detekci horizontÃ¡lnÃ­ch hran
     vector<vector<int>> prewittY = {
         {-1, -1, -1},
         { 0,  0,  0},
         { 1,  1,  1}
     };
 
-    // Aplikace konvoluce pro vertikální a horizontální gradienty
+    // Aplikace konvoluce pro vertikÃ¡lnÃ­ a horizontÃ¡lnÃ­ gradienty
     Mat gradX = applyConvolution(img, prewittX);
     Mat gradY = applyConvolution(img, prewittY);
 
-    // Vıpoèet velikosti gradientu
-    // Velikost gradientu je kombinací vertikálního a horizontálního gradientu
+    // VÃ½poÄet velikosti gradientu
+    // Velikost gradientu je kombinacÃ­ vertikÃ¡lnÃ­ho a horizontÃ¡lnÃ­ho gradientu
     output = Mat::zeros(img.size(), CV_32F);
     for (int y = 0; y < img.rows; y++) {
         for (int x = 0; x < img.cols; x++) {
-            float Gx = gradX.at<float>(y, x); // Vertikální gradient
-            float Gy = gradY.at<float>(y, x); // Horizontální gradient
-            output.at<float>(y, x) = sqrt(Gx * Gx + Gy * Gy); // Vıpoèet celkového gradientu
+            float Gx = gradX.at<float>(y, x); // VertikÃ¡lnÃ­ gradient
+            float Gy = gradY.at<float>(y, x); // HorizontÃ¡lnÃ­ gradient
+            output.at<float>(y, x) = sqrt(Gx * Gx + Gy * Gy); // VÃ½poÄet celkovÃ©ho gradientu
         }
     }
 }
 
-// Funkce pro aplikaci Laplaceova operátoru s nastavitelnou velikostí jádra
+// Funkce pro aplikaci Laplaceova operÃ¡toru s nastavitelnou velikostÃ­ jÃ¡dra
 void applyLaplacian(const Mat& img, Mat& output, int kernelSize = 3) {
-    // Vytvoøení Laplaceova jádra podle zadané velikosti
-    // Laplaceùv operátor detekuje hrany pomocí druhé derivace
+    // VytvoÅ™enÃ­ Laplaceova jÃ¡dra podle zadanÃ© velikosti
+    // LaplaceÅ¯v operÃ¡tor detekuje hrany pomocÃ­ druhÃ© derivace
     Mat kernel = Mat::zeros(kernelSize, kernelSize, CV_32F);
-    int center = kernelSize / 2; // Støed jádra
+    int center = kernelSize / 2; // StÅ™ed jÃ¡dra
 
-    // Naplnìní jádra hodnotami
-    // Støed jádra má vysokou hodnotu, okolní hodnoty jsou záporné
+    // NaplnÄ›nÃ­ jÃ¡dra hodnotami
+    // StÅ™ed jÃ¡dra mÃ¡ vysokou hodnotu, okolnÃ­ hodnoty jsou zÃ¡pornÃ©
     for (int i = 0; i < kernelSize; i++) {
         for (int j = 0; j < kernelSize; j++) {
             if (i == center && j == center) {
-                kernel.at<float>(i, j) = kernelSize * kernelSize - 1; // Støed jádra
+                kernel.at<float>(i, j) = kernelSize * kernelSize - 1; // StÅ™ed jÃ¡dra
             }
             else {
-                kernel.at<float>(i, j) = -1; // Okolní hodnoty
+                kernel.at<float>(i, j) = -1; // OkolnÃ­ hodnoty
             }
         }
     }
@@ -121,104 +121,69 @@ void applyLaplacian(const Mat& img, Mat& output, int kernelSize = 3) {
     output = Mat::zeros(img.size(), CV_32F);
     int offset = kernelSize / 2;
 
-    // Procházení obrázku (vynechání okrajù kvùli jádru)
+    // ProchÃ¡zenÃ­ obrÃ¡zku (vynechÃ¡nÃ­ okrajÅ¯ kvÅ¯li jÃ¡dru)
     for (int y = offset; y < img.rows - offset; y++) {
         for (int x = offset; x < img.cols - offset; x++) {
-            float sum = 0.0f; // Inicializace souètu pro konvoluci
+            float sum = 0.0f; // Inicializace souÄtu pro konvoluci
 
-            // Procházení jádra
+            // ProchÃ¡zenÃ­ jÃ¡dra
             for (int ky = -offset; ky <= offset; ky++) {
                 for (int kx = -offset; kx <= offset; kx++) {
                     int pixelValue = img.at<uchar>(y + ky, x + kx); // Hodnota pixelu
-                    sum += pixelValue * kernel.at<float>(ky + offset, kx + offset); // Aplikace jádra
+                    sum += pixelValue * kernel.at<float>(ky + offset, kx + offset); // Aplikace jÃ¡dra
                 }
             }
-            output.at<float>(y, x) = sum; // Uloení vısledku konvoluce
+            output.at<float>(y, x) = sum; // UloÅ¾enÃ­ vÃ½sledku konvoluce
         }
     }
 }
 
-// Funkce pro aplikaci Scharr operátoru
+// Funkce pro aplikaci Scharr operÃ¡toru
 void applyScharr(const Mat& img, Mat& output) {
-    // Scharrovo jádro pro detekci vertikálních hran
-    // Scharrùv operátor je podobnı Sobelovu, ale poskytuje lepší pøesnost
+    // Scharrovo jÃ¡dro pro detekci vertikÃ¡lnÃ­ch hran
+    // ScharrÅ¯v operÃ¡tor je podobnÃ½ Sobelovu, ale poskytuje lepÅ¡Ã­ pÅ™esnost
     vector<vector<int>> scharrX = {
         {-3,  0,  3},
         {-10, 0, 10},
         {-3,  0,  3}
     };
 
-    // Scharrovo jádro pro detekci horizontálních hran
+    // Scharrovo jÃ¡dro pro detekci horizontÃ¡lnÃ­ch hran
     vector<vector<int>> scharrY = {
         {-3, -10, -3},
         { 0,   0,  0},
         { 3,  10,  3}
     };
 
-    // Aplikace konvoluce pro vertikální a horizontální gradienty
+    // Aplikace konvoluce pro vertikÃ¡lnÃ­ a horizontÃ¡lnÃ­ gradienty
     Mat gradX = applyConvolution(img, scharrX);
     Mat gradY = applyConvolution(img, scharrY);
 
-    // Vıpoèet velikosti gradientu
+    // VÃ½poÄet velikosti gradientu
     output = Mat::zeros(img.size(), CV_32F);
     for (int y = 0; y < img.rows; y++) {
         for (int x = 0; x < img.cols; x++) {
-            float Gx = gradX.at<float>(y, x); // Vertikální gradient
-            float Gy = gradY.at<float>(y, x); // Horizontální gradient
-            output.at<float>(y, x) = sqrt(Gx * Gx + Gy * Gy); // Vıpoèet celkového gradientu
+            float Gx = gradX.at<float>(y, x); // VertikÃ¡lnÃ­ gradient
+            float Gy = gradY.at<float>(y, x); // HorizontÃ¡lnÃ­ gradient
+            output.at<float>(y, x) = sqrt(Gx * Gx + Gy * Gy); // VÃ½poÄet celkovÃ©ho gradientu
         }
     }
 }
 
-// Funkce pro aplikaci Kirsch operátoru
-void applyKirsch(const Mat& img, Mat& output) {
-    // 8 smìrovıch jader pro Kirschùv operátor
-    // Kirschùv operátor detekuje hrany v 8 rùznıch smìrech
-    vector<Mat> kernels = {
-        (Mat_<float>(3, 3) << 5,  5,  5, -3,  0, -3, -3, -3, -3),
-        (Mat_<float>(3, 3) << 5,  5, -3,  5,  0, -3, -3, -3, -3),
-        (Mat_<float>(3, 3) << 5, -3, -3,  5,  0, -3,  5, -3, -3),
-        (Mat_<float>(3, 3) << -3, -3, -3,  5,  0, -3,  5,  5, -3),
-        (Mat_<float>(3, 3) << -3, -3, -3, -3,  0, -3,  5,  5,  5),
-        (Mat_<float>(3, 3) << -3, -3,  5, -3,  0,  5, -3, -3,  5),
-        (Mat_<float>(3, 3) << -3,  5, -3, -3,  0,  5, -3, -3, -3),
-        (Mat_<float>(3, 3) << -3, -3, -3, -3,  0,  5, -3, -3,  5)
-    };
-
-    output = Mat::zeros(img.size(), CV_32F);
-
-    // Aplikace kadého filtru a porovnání
-    for (int y = 1; y < img.rows - 1; ++y) {
-        for (int x = 1; x < img.cols - 1; ++x) {
-            float maxVal = -FLT_MAX; // Inicializace maximální hodnoty
-            for (const auto& kernel : kernels) {
-                float response = 0; // Inicializace odpovìdi jádra
-                for (int ky = -1; ky <= 1; ++ky) {
-                    for (int kx = -1; kx <= 1; ++kx) {
-                        response += kernel.at<float>(ky + 1, kx + 1) * img.at<uchar>(y + ky, x + kx); // Aplikace jádra
-                    }
-                }
-                maxVal = max(maxVal, abs(response)); // Uloení maximální odpovìdi
-            }
-            output.at<float>(y, x) = maxVal; // Uloení vısledku
-        }
-    }
-}
-
-// Funkce pro prahování
+// Funkce pro prahovÃ¡nÃ­
 Mat applyThreshold(const Mat& input, float threshold) {
-    Mat output = Mat::zeros(input.size(), CV_8U); // Vıstupní binární obrázek
+    Mat output = Mat::zeros(input.size(), CV_8U); // VÃ½stupnÃ­ binÃ¡rnÃ­ obrÃ¡zek
     for (int y = 0; y < input.rows; y++) {
         for (int x = 0; x < input.cols; x++) {
             float value = input.at<float>(y, x); // Hodnota pixelu
-            output.at<uchar>(y, x) = (value > threshold) ? 255 : 0; // Prahování
+            output.at<uchar>(y, x) = (value > threshold) ? 255 : 0; // PrahovÃ¡nÃ­
         }
     }
-    return output; // Vrácení binárního obrázku
+    return output; // VrÃ¡cenÃ­ binÃ¡rnÃ­ho obrÃ¡zku
 }
 
 int main() {
-    // Naètení obrázku v odstínech šedi
+    // NaÄtenÃ­ obrÃ¡zku v odstÃ­nech Å¡edi
     //Mat img = imread("inputs/image.jpg", IMREAD_GRAYSCALE); //obrazek z: https://en.wikipedia.org/wiki/Sobel_operator#/media/File:Bikesgray.jpg
     Mat img = imread("inputs/image.png", IMREAD_GRAYSCALE); //obrazek z: https://en.wikipedia.org/wiki/Sobel_operator#/media/File:Valve_original_(1).PNG
     //Mat img = imread("inputs/image2.png", IMREAD_GRAYSCALE);
@@ -228,44 +193,39 @@ int main() {
         return -1;
     }
 
-    // Aplikace rùznıch filtrù
-    Mat sobelVertical, sobelHorizontal, prewittEdges, laplacianEdges, scharrEdges, kirschEdges;
+    // Aplikace rÅ¯znÃ½ch filtrÅ¯
+    Mat sobelVertical, sobelHorizontal, prewittEdges, laplacianEdges, scharrEdges;
 
-    // Sobel - vertikální a horizontální hrany
+    // Sobel - vertikÃ¡lnÃ­ a horizontÃ¡lnÃ­ hrany
     applySobel(img, sobelVertical, false); 
     applySobel(img, sobelHorizontal, true); 
 
     // Prewitt
     applyPrewitt(img, prewittEdges);
 
-    // Laplace - rùzné nastavení velikosti jádra
-    int kernelSize = 3; // Velikost jádra 
+    // Laplace - rÅ¯znÃ© nastavenÃ­ velikosti jÃ¡dra
+    int kernelSize = 3; // Velikost jÃ¡dra 
     applyLaplacian(img, laplacianEdges, kernelSize);
 
     // Scharr
     applyScharr(img, scharrEdges);
 
-    // Kirsch
-    applyKirsch(img, kirschEdges);
-
-    // Prahování
-    Mat sobelVerticalThresholded = applyThreshold(sobelVertical, 100); // Kadı pixel v obraze se porovná s danou prahovou hodnotou jestli je nad nebo pod ní
+    // PrahovÃ¡nÃ­
+    Mat sobelVerticalThresholded = applyThreshold(sobelVertical, 100); // KaÅ¾dÃ½ pixel v obraze se porovnÃ¡ s danou prahovou hodnotou jestli je nad nebo pod nÃ­
     Mat sobelHorizontalThresholded = applyThreshold(sobelHorizontal, 100);
     Mat prewittThresholded = applyThreshold(prewittEdges, 100);
     Mat laplacianThresholded = applyThreshold(laplacianEdges, 100);
     Mat scharrThresholded = applyThreshold(scharrEdges, 100);
-    Mat kirschThresholded = applyThreshold(kirschEdges, 100);
 
-    // Zobrazení vısledkù
+    // ZobrazenÃ­ vÃ½sledkÅ¯
     imshow("Puvodni obrazek", img);
     imshow("Sobel - Vertikalni hrany", sobelVerticalThresholded);
     imshow("Sobel - Horizontalni hrany", sobelHorizontalThresholded);
     imshow("Prewitt", prewittThresholded);
     imshow("Laplacian - Jadro " + std::to_string(kernelSize) + "x" + std::to_string(kernelSize), laplacianThresholded);
     imshow("Scharr", scharrThresholded);
-    imshow("Kirsch", kirschThresholded);
 
-    //imwrite("sobel_horizontal.png", sobelHorizontal);
+    //imwrite("laplace_3x3.png", laplacianThresholded);
 
     waitKey(0);
     return 0;
